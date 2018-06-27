@@ -16,11 +16,43 @@ public class DbUtil {
     }
 
     //释放资源
-    public static void close(ResultSet rs, Statement stmt, PreparedStatement pstmt, Connection con) throws SQLException {
-        if(rs != null)rs.close();
-        if(stmt != null)stmt.close();
-        if(pstmt != null)pstmt.close();
-        if(con != null)con.close();
+    public static void close(ResultSet rst, Statement stmt, PreparedStatement pst, Connection con){
+        if(rst != null) {
+            try {
+                rst.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }finally {
+                rst = null;
+            }
+        }
+        if(stmt != null) {
+            try {
+                stmt.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }finally {
+                stmt = null;
+            }
+        }
+        if(pst != null) {
+            try {
+                pst.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }finally {
+                pst = null;
+            }
+        }
+        if(con != null) {
+            try {
+                con.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }finally {
+                con = null;
+            }
+        }
     }
 
     //执行预编译
@@ -34,32 +66,39 @@ public class DbUtil {
 
     //查询操作
     public static ResultSet executeQuery(String sql,List<Object> sqlParams){
-        ResultSet rs = null;
-
+        ResultSet rst = null;
+        Connection con = null;
+        PreparedStatement pst = null;
         try{
-            PreparedStatement pst = DbUtil.getConnection().prepareStatement(sql);
+            con = DbUtil.getConnection();
+            pst = con.prepareStatement(sql);
             if(sqlParams != null && sqlParams.size()>0){
                 DbUtil.bindParams(pst,sqlParams);
             }
-            rs = pst.executeQuery();
+            rst = pst.executeQuery();
         }catch (Exception e){}
-
-        return rs;
+        
+        close(rst,null,pst,con);
+        
+        return rst;
     }
 
     //增删改操作
     public static int executeUpdate(String sql,List<Object> sqlParams){
         int result = 0;
-
+        Connection con = null;
+        PreparedStatement pst = null;
         try{
-            Connection con = DbUtil.getConnection();
-            PreparedStatement pst = con.prepareStatement(sql);
+            con = DbUtil.getConnection();
+            pst = con.prepareStatement(sql);
             if(sqlParams != null && sqlParams.size()>0){
                 DbUtil.bindParams(pst,sqlParams);
             }
             result = pst.executeUpdate();
         } catch (Exception e) {}
 
+        close(null,null,pst,con);
+        
         return result;
     }
 
