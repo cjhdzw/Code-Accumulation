@@ -12,6 +12,11 @@ public class DbUtil {
     private static String user           = "root";
     private static String password       = "root";
 
+    private static Connection con        = null;
+    private static PreparedStatement pst = null;
+    private static Statement stmt        = null;
+    private static ResultSet rst         = null;
+
     //建立连接
     public static Connection getConnection() throws Exception{
         Class.forName(drive);
@@ -68,12 +73,12 @@ public class DbUtil {
     //查询操作
     public static List<Map<String, Object>> executeQuery(String sql, List<?> sqlParams) throws Exception {
         List<Map<String, Object>> list = new ArrayList<>();
-        Connection con = DbUtil.getConnection();
-        PreparedStatement pst = con.prepareStatement(sql);
+        con = DbUtil.getConnection();
+        pst = con.prepareStatement(sql);
         if (sqlParams != null && !sqlParams.isEmpty()) {
             DbUtil.bindsqlParams(pst,sqlParams);
         }
-        ResultSet rst = pst.executeQuery();
+        rst = pst.executeQuery();
         ResultSetMetaData metaData = rst.getMetaData();
         int cols_len = metaData.getColumnCount();
         while (rst.next()) {
@@ -88,19 +93,19 @@ public class DbUtil {
             }
             list.add(map);
         }
-        close(rst,null,pst,con);
+        close(rst,stmt,pst,con);
         return list;
     }
 
     //增删改操作
     public static int executeUpdate(String sql,List<?> sqlParams) throws Exception{
-        Connection con = DbUtil.getConnection();
-        PreparedStatement pst = con.prepareStatement(sql);
+        con = DbUtil.getConnection();
+        pst = con.prepareStatement(sql);
         if(sqlParams != null && !sqlParams.isEmpty()) {
             DbUtil.bindsqlParams(pst, sqlParams);
         }
         int result = pst.executeUpdate();
-        close(null,null,pst,con);
+        close(rst,stmt,pst,con);
         return result;
     }
 
