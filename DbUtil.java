@@ -59,9 +59,9 @@ public class DbUtil {
     }
 
     //执行预编译
-    private static void bindsqlParams(PreparedStatement pst, List<Object> sqlsqlParams) throws Exception{
-        for(int i = 0;i<sqlsqlParams.size();i++){
-            pst.setObject(i+1,sqlsqlParams.get(i));
+    private static void bindsqlParams(PreparedStatement pst, List<?> sqlParams) throws Exception{
+        for(int i = 0;i<sqlParams.size();i++){
+            pst.setObject(i+1,sqlParams.get(i));
         }
     }
 
@@ -70,11 +70,8 @@ public class DbUtil {
         List<Map<String, Object>> list = new ArrayList<>();
         Connection con = DbUtil.getConnection();
         PreparedStatement pst = con.prepareStatement(sql);
-        int index = 1;
         if (sqlParams != null && !sqlParams.isEmpty()) {
-            for (int i = 0; i < sqlParams.size(); i++) {
-                pst.setObject(index++, sqlParams.get(i));
-            }
+            DbUtil.bindsqlParams(pst,sqlParams);
         }
         ResultSet rst = pst.executeQuery();
         ResultSetMetaData metaData = rst.getMetaData();
@@ -95,11 +92,11 @@ public class DbUtil {
     }
 
     //增删改操作
-    public static int executeUpdate(String sql,List<Object> sqlsqlParams) throws Exception{
+    public static int executeUpdate(String sql,List<?> sqlParams) throws Exception{
         Connection con = DbUtil.getConnection();
         PreparedStatement pst = con.prepareStatement(sql);
-        if(sqlsqlParams != null && sqlsqlParams.size()>0) {
-            DbUtil.bindsqlParams(pst, sqlsqlParams);
+        if(sqlParams != null && !sqlParams.isEmpty()) {
+            DbUtil.bindsqlParams(pst, sqlParams);
         }
         int result = pst.executeUpdate();
         close(null,null,pst,con);
