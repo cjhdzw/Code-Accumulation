@@ -88,6 +88,7 @@ public class DbUtil {
             }
             list.add(map);
         }
+        close(rst,null,pst,con);
         return list;
     }
 
