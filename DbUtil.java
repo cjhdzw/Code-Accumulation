@@ -1,13 +1,16 @@
 package util;
 
 import java.sql.*;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class DbUtil {
-    private static String drive    = "com.mysql.jdbc.Driver";
-    private static String url      = "jdbc:mysql://localhost:3306/student?characterEncoding=utf8&useSSL=true";
-    private static String user     = "root";
-    private static String password = "root";
+    private static String drive          = "com.mysql.jdbc.Driver";
+    private static String url            = "jdbc:mysql://localhost:3306/student?characterEncoding=utf8&useSSL=true";
+    private static String user           = "root";
+    private static String password       = "root";
 
     //建立连接
     public static Connection getConnection() throws Exception{
@@ -56,49 +59,50 @@ public class DbUtil {
     }
 
     //执行预编译
-    private static void bindParams(PreparedStatement pst, List<Object> sqlParams){
-        for(int i = 0;i<sqlParams.size();i++){
-            try{
-                pst.setObject(i+1,sqlParams.get(i));
-            }catch (Exception e){}
+    private static void bindsqlParams(PreparedStatement pst, List<Object> sqlsqlParams) throws Exception{
+        for(int i = 0;i<sqlsqlParams.size();i++){
+            pst.setObject(i+1,sqlsqlParams.get(i));
         }
     }
 
     //查询操作
-    public static ResultSet executeQuery(String sql,List<Object> sqlParams){
-        ResultSet rst = null;
-        Connection con = null;
-        PreparedStatement pst = null;
-        try{
-            con = DbUtil.getConnection();
-            pst = con.prepareStatement(sql);
-            if(sqlParams != null && sqlParams.size()>0){
-                DbUtil.bindParams(pst,sqlParams);
+    public static List<Map<String, Object>> executeQuery(String sql, List<?> sqlParams) throws Exception {
+        List<Map<String, Object>> list = new ArrayList<>();
+        Connection con = DbUtil.getConnection();
+        PreparedStatement pst = con.prepareStatement(sql);
+        int index = 1;
+        if (sqlParams != null && !sqlParams.isEmpty()) {
+            for (int i = 0; i < sqlParams.size(); i++) {
+                pst.setObject(index++, sqlParams.get(i));
             }
-            rst = pst.executeQuery();
-        }catch (Exception e){}
-        
-        close(rst,null,pst,con);
-        
-        return rst;
+        }
+        ResultSet rst = pst.executeQuery();
+        ResultSetMetaData metaData = rst.getMetaData();
+        int cols_len = metaData.getColumnCount();
+        while (rst.next()) {
+            Map<String, Object> map = new HashMap<>();
+            for (int i = 0; i < cols_len; i++) {
+                String cols_name = metaData.getColumnName(i + 1);
+                Object cols_value = rst.getObject(cols_name);
+                if (cols_value == null) {
+                    cols_value = "";
+                }
+                map.put(cols_name, cols_value);
+            }
+            list.add(map);
+        }
+        return list;
     }
 
     //增删改操作
-    public static int executeUpdate(String sql,List<Object> sqlParams){
-        int result = 0;
-        Connection con = null;
-        PreparedStatement pst = null;
-        try{
-            con = DbUtil.getConnection();
-            pst = con.prepareStatement(sql);
-            if(sqlParams != null && sqlParams.size()>0){
-                DbUtil.bindParams(pst,sqlParams);
-            }
-            result = pst.executeUpdate();
-        } catch (Exception e) {}
-
+    public static int executeUpdate(String sql,List<Object> sqlsqlParams) throws Exception{
+        Connection con = DbUtil.getConnection();
+        PreparedStatement pst = con.prepareStatement(sql);
+        if(sqlsqlParams != null && sqlsqlParams.size()>0) {
+            DbUtil.bindsqlParams(pst, sqlsqlParams);
+        }
+        int result = pst.executeUpdate();
         close(null,null,pst,con);
-        
         return result;
     }
 
