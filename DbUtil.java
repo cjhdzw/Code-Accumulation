@@ -110,6 +110,7 @@ public class DbUtil {
         close(rst,stmt,pst,con);
         return result;
     }
+    
     //md5加密
     public static String md5(String password) {
         try {
@@ -130,5 +131,4 @@ public class DbUtil {
             return "";
         }
     }
-
 }
