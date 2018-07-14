@@ -1,5 +1,7 @@
-package util;
+package com.team_pi.util;
 
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -8,7 +10,7 @@ import java.util.Map;
 
 public class DbUtil {
     private static String drive          = "com.mysql.jdbc.Driver";
-    private static String url            = "jdbc:mysql://localhost:3306/student?characterEncoding=utf8&useSSL=true";
+    private static String url            = "jdbc:mysql://localhost:3306/team_pi?characterEncoding=utf8&useSSL=true";
     private static String user           = "root";
     private static String password       = "root";
 
@@ -64,7 +66,7 @@ public class DbUtil {
     }
 
     //执行预编译
-    private static void bindsqlParams(PreparedStatement pst, List<?> sqlParams) throws Exception{
+    private static void bindParams(PreparedStatement pst, List<?> sqlParams) throws Exception{
         for(int i = 0;i<sqlParams.size();i++){
             pst.setObject(i+1,sqlParams.get(i));
         }
@@ -76,7 +78,7 @@ public class DbUtil {
         con = DbUtil.getConnection();
         pst = con.prepareStatement(sql);
         if (sqlParams != null && !sqlParams.isEmpty()) {
-            DbUtil.bindsqlParams(pst,sqlParams);
+            DbUtil.bindParams(pst,sqlParams);
         }
         rst = pst.executeQuery();
         ResultSetMetaData metaData = rst.getMetaData();
@@ -102,11 +104,31 @@ public class DbUtil {
         con = DbUtil.getConnection();
         pst = con.prepareStatement(sql);
         if(sqlParams != null && !sqlParams.isEmpty()) {
-            DbUtil.bindsqlParams(pst, sqlParams);
+            DbUtil.bindParams(pst, sqlParams);
         }
         int result = pst.executeUpdate();
         close(rst,stmt,pst,con);
         return result;
+    }
+    //md5加密
+    public static String md5(String password) {
+        try {
+            MessageDigest digest = MessageDigest.getInstance("md5");
+            byte[] result = digest.digest(password.getBytes());
+            StringBuffer buffer = new StringBuffer();
+            for (byte b : result) {
+                int number = b & 0xff;
+                String str = Integer.toHexString(number);
+                if (str.length() == 1) {
+                    buffer.append("0");
+                }
+                buffer.append(str);
+            }
+            return buffer.toString();
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+            return "";
+        }
     }
 
 }
